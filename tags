@@ -1,0 +1,183 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ASSOC	compress/trace.cc	100;"	d	file:
+ASSOC	trace.cc	172;"	d	file:
+BR_CALL	branch.h	28;"	d
+BR_CALL	compress/branch.h	23;"	d
+BR_CONDITIONAL	branch.h	26;"	d
+BR_CONDITIONAL	compress/branch.h	21;"	d
+BR_INDIRECT	branch.h	27;"	d
+BR_INDIRECT	compress/branch.h	22;"	d
+BR_RETURN	branch.h	29;"	d
+BR_RETURN	compress/branch.h	24;"	d
+BUFSIZE	compress/trace.cc	10;"	d	file:
+BUFSIZE	trace.cc	47;"	d	file:
+BZCAT	compress/trace.cc	17;"	d	file:
+BZCAT	trace.h	9;"	d
+BZIP2_MAGIC	compress/trace.cc	319;"	d	file:
+BZIP2_MAGIC	trace.cc	438;"	d	file:
+CAT	compress/trace.cc	18;"	d	file:
+CAT	trace.h	11;"	d
+CXX	Makefile	/^CXX		=	g++$/;"	m
+CXX	compress/Makefile	/^CXX		=	g++$/;"	m
+CXXFLAGS	Makefile	/^CXXFLAGS	=	-g -O3 -Wall$/;"	m
+CXXFLAGS	compress/Makefile	/^CXXFLAGS	=	-g$/;"	m
+GZIP_MAGIC	compress/trace.cc	318;"	d	file:
+GZIP_MAGIC	trace.cc	437;"	d	file:
+HISTORY_LENGTH	my_predictor.h	13;"	d
+N_REMEMBER	compress/trace.cc	99;"	d	file:
+N_REMEMBER	trace.cc	171;"	d	file:
+OP_JA	branch.h	11;"	d
+OP_JA	compress/branch.h	11;"	d
+OP_JBE	branch.h	10;"	d
+OP_JBE	compress/branch.h	10;"	d
+OP_JC	branch.h	6;"	d
+OP_JC	compress/branch.h	6;"	d
+OP_JG	branch.h	19;"	d
+OP_JG	compress/branch.h	19;"	d
+OP_JGE	branch.h	17;"	d
+OP_JGE	compress/branch.h	17;"	d
+OP_JL	branch.h	16;"	d
+OP_JL	compress/branch.h	16;"	d
+OP_JLE	branch.h	18;"	d
+OP_JLE	compress/branch.h	18;"	d
+OP_JNC	branch.h	7;"	d
+OP_JNC	compress/branch.h	7;"	d
+OP_JNO	branch.h	5;"	d
+OP_JNO	compress/branch.h	5;"	d
+OP_JNP	branch.h	15;"	d
+OP_JNP	compress/branch.h	15;"	d
+OP_JNS	branch.h	13;"	d
+OP_JNS	compress/branch.h	13;"	d
+OP_JNZ	branch.h	9;"	d
+OP_JNZ	compress/branch.h	9;"	d
+OP_JO	branch.h	4;"	d
+OP_JO	compress/branch.h	4;"	d
+OP_JP	branch.h	14;"	d
+OP_JP	compress/branch.h	14;"	d
+OP_JS	branch.h	12;"	d
+OP_JS	compress/branch.h	12;"	d
+OP_JZ	branch.h	8;"	d
+OP_JZ	compress/branch.h	8;"	d
+RAS_SIZE	compress/trace.cc	81;"	d	file:
+RAS_SIZE	trace.cc	146;"	d	file:
+TABLE_BITS	my_predictor.h	14;"	d
+Total_bytes	compress/trace.cc	/^long long int Total_bytes = 0;$/;"	v
+XZCAT	trace.h	10;"	d
+XZ_MAGIC	trace.cc	439;"	d	file:
+ZCAT	compress/trace.cc	16;"	d	file:
+ZCAT	trace.h	8;"	d
+_direction_prediction	predictor.h	/^	bool _direction_prediction;$/;"	m	class:branch_update
+_target_prediction	predictor.h	/^	unsigned int _target_prediction;$/;"	m	class:branch_update
+address	branch.h	/^		address, 	\/\/ branch address$/;"	m	struct:branch_info
+address	compress/branch.h	/^		address, 	\/\/ branch address$/;"	m	struct:branch_info
+address	compress/trace.cc	/^	unsigned int address, target;$/;"	m	struct:remember	file:
+address	trace.cc	/^	unsigned int address, target;$/;"	m	struct:remember	file:
+bi	compress/trace.h	/^	branch_info bi;$/;"	m	struct:trace
+bi	my_predictor.h	/^	branch_info bi;$/;"	m	class:my_predictor
+bi	trace.h	/^	branch_info bi;$/;"	m	struct:trace
+br_flags	branch.h	/^		br_flags;	\/\/ OR of some BR_ flags$/;"	m	struct:branch_info
+br_flags	compress/branch.h	/^		br_flags;	\/\/ OR of some BR_ flags$/;"	m	struct:branch_info
+branch_info	branch.h	/^struct branch_info {$/;"	s
+branch_info	compress/branch.h	/^	branch_info (void) {$/;"	f	struct:branch_info
+branch_info	compress/branch.h	/^struct branch_info {$/;"	s
+branch_predictor	predictor.h	/^class branch_predictor {$/;"	c
+branch_update	predictor.h	/^	branch_update (void) : $/;"	f	class:branch_update
+branch_update	predictor.h	/^class branch_update {$/;"	c
+buf	compress/trace.cc	/^unsigned char buf[BUFSIZE];$/;"	v
+buf	trace.cc	/^unsigned char buf[BUFSIZE];$/;"	v
+bufpos	compress/trace.cc	/^unsigned int bufpos, bufsize;$/;"	v
+bufpos	trace.cc	/^unsigned int bufpos;$/;"	v
+bufsize	compress/trace.cc	/^unsigned int bufpos, bufsize;$/;"	v
+bufsize	trace.cc	/^unsigned int bufsize;$/;"	v
+code	compress/trace.cc	/^	unsigned char code;$/;"	m	struct:remember	file:
+code	trace.cc	/^	unsigned char code; $/;"	m	struct:remember	file:
+compressing	compress/ct.cc	/^bool compressing = false;$/;"	v
+direction_prediction	predictor.h	/^	bool direction_prediction () { return _direction_prediction; }$/;"	f	class:branch_update
+direction_prediction	predictor.h	/^	void direction_prediction (bool b) { _direction_prediction = b; }$/;"	f	class:branch_update
+end_of_file	compress/trace.cc	/^bool end_of_file;$/;"	v
+end_of_file	trace.cc	/^bool end_of_file;$/;"	v
+end_trace	compress/trace.cc	/^void end_trace (void) {$/;"	f
+end_trace	trace.cc	/^void end_trace (void) {$/;"	f
+equal	compress/trace.cc	/^	bool equal (remember *r, bool ignore_target) {$/;"	f	struct:remember
+equal	trace.cc	/^	bool equal (remember *r, bool ignore_target) {$/;"	f	struct:remember
+history	my_predictor.h	/^	unsigned int history;$/;"	m	class:my_predictor
+index	my_predictor.h	/^	unsigned int index;$/;"	m	class:my_update
+init_ras	compress/trace.cc	/^void init_ras (void) {$/;"	f
+init_ras	trace.cc	/^void init_ras (void) {$/;"	f
+init_trace	compress/trace.cc	/^void init_trace (char *fname) {$/;"	f
+init_trace	trace.cc	/^void init_trace (char *fname) {$/;"	f
+instructions_per_branch	trace.cc	/^double instructions_per_branch = 4.0;$/;"	v
+last_one	compress/trace.cc	/^static remember last_one;$/;"	v	file:
+last_one	trace.cc	/^static remember last_one; $/;"	v	file:
+lru_time	compress/trace.cc	/^	unsigned int lru_time;$/;"	m	struct:remember	file:
+lru_time	trace.cc	/^	unsigned int lru_time;$/;"	m	struct:remember	file:
+main	compress/ct.cc	/^int main (int argc, char *argv[]) {$/;"	f
+main	predict.cc	/^int main (int argc, char *argv[]) {$/;"	f
+my_predictor	my_predictor.h	/^	my_predictor (void) : history(0) { $/;"	f	class:my_predictor
+my_predictor	my_predictor.h	/^class my_predictor : public branch_predictor {$/;"	c
+my_update	my_predictor.h	/^class my_update : public branch_update {$/;"	c
+now	compress/trace.cc	/^static unsigned int now = 0;$/;"	v	file:
+now	trace.cc	/^static unsigned int now = 0; $/;"	v	file:
+nright	compress/trace.cc	/^static unsigned int nright = 0;$/;"	v	file:
+ntimes	compress/trace.cc	/^static unsigned int ntimes = 0;$/;"	v	file:
+opcode	branch.h	/^		opcode,		\/\/ opcode for conditional branch$/;"	m	struct:branch_info
+opcode	compress/branch.h	/^		opcode,		\/\/ opcode for conditional branch$/;"	m	struct:branch_info
+pop_ras	compress/trace.cc	/^unsigned int pop_ras (void) {$/;"	f
+pop_ras	trace.cc	/^unsigned int pop_ras (void) {$/;"	f
+predict	my_predictor.h	/^	branch_update *predict (branch_info & b) {$/;"	f	class:my_predictor
+predict_remember	compress/trace.cc	/^remember *predict_remember (void) {$/;"	f
+predict_remember	trace.cc	/^remember *predict_remember (void) {$/;"	f
+print_stats	predict.cc	/^void print_stats (long long int dmiss, long long int tmiss) {$/;"	f
+push_ras	compress/trace.cc	/^void push_ras (unsigned int a) {$/;"	f
+push_ras	trace.cc	/^void push_ras (unsigned int a) {$/;"	f
+ras	compress/trace.cc	/^unsigned int ras[RAS_SIZE];$/;"	v
+ras	trace.cc	/^unsigned int ras[RAS_SIZE];$/;"	v
+ras_top	compress/trace.cc	/^int ras_top = 100;$/;"	v
+ras_top	trace.cc	/^int ras_top = RAS_SIZE;$/;"	v
+read_byte	compress/trace.cc	/^unsigned char read_byte (void) {$/;"	f
+read_byte	trace.cc	/^unsigned char read_byte (void) {$/;"	f
+read_trace	compress/trace.cc	/^trace *read_trace (void) {$/;"	f
+read_trace	trace.cc	/^trace *read_trace (void) {$/;"	f
+read_trace1	trace.cc	/^trace *read_trace1 (void) {$/;"	f
+read_uint	compress/trace.cc	/^unsigned int read_uint (void) {$/;"	f
+read_uint	trace.cc	/^unsigned int read_uint (void) {$/;"	f
+remember	compress/trace.cc	/^	remember (unsigned char c, unsigned int a, unsigned int t, bool ta) {$/;"	f	struct:remember
+remember	compress/trace.cc	/^	remember (void) {$/;"	f	struct:remember
+remember	compress/trace.cc	/^struct remember {$/;"	s	file:
+remember	trace.cc	/^	remember (void) {$/;"	f	struct:remember
+remember	trace.cc	/^struct remember {$/;"	s	file:
+rtab	compress/trace.cc	/^remember rtab[N_REMEMBER][ASSOC];$/;"	v
+rtab	trace.cc	/^remember rtab[N_REMEMBER][ASSOC];$/;"	v
+search_remember	compress/trace.cc	/^int search_remember (remember & me, remember *r, bool ras_correct) {$/;"	f
+tab	my_predictor.h	/^	unsigned char tab[1<<TABLE_BITS];$/;"	m	class:my_predictor
+taken	compress/trace.cc	/^	bool taken;$/;"	m	struct:remember	file:
+taken	compress/trace.h	/^	bool	taken;$/;"	m	struct:trace
+taken	trace.cc	/^	bool taken;$/;"	m	struct:remember	file:
+taken	trace.h	/^	bool	taken;$/;"	m	struct:trace
+target	compress/trace.cc	/^	unsigned int address, target;$/;"	m	struct:remember	file:
+target	compress/trace.h	/^	unsigned int target;$/;"	m	struct:trace
+target	trace.cc	/^	unsigned int address, target;$/;"	m	struct:remember	file:
+target	trace.h	/^	unsigned int target;$/;"	m	struct:trace
+target_prediction	predictor.h	/^	unsigned int target_prediction () { return _target_prediction; }$/;"	f	class:branch_update
+target_prediction	predictor.h	/^	void target_prediction (unsigned int t) { _target_prediction = t; }$/;"	f	class:branch_update
+targets	my_predictor.h	/^	unsigned int targets[1<<TABLE_BITS];$/;"	m	class:my_predictor
+total_bytes	compress/trace.cc	/^static unsigned int total_bytes = 0, trace_bytes = 0;$/;"	v	file:
+trace	compress/trace.h	/^	trace (void) {$/;"	f	struct:trace
+trace	compress/trace.h	/^struct trace {$/;"	s
+trace	trace.h	/^struct trace {$/;"	s
+trace_branches	trace.cc	/^long long int trace_instructions, trace_branches = 0;$/;"	v
+trace_bytes	compress/trace.cc	/^static unsigned int total_bytes = 0, trace_bytes = 0;$/;"	v	file:
+trace_instructions	trace.cc	/^long long int trace_instructions, trace_branches = 0;$/;"	v
+tracefp	compress/trace.cc	/^FILE *tracefp;$/;"	v
+tracefp	trace.cc	/^FILE *tracefp;$/;"	v
+u	my_predictor.h	/^	my_update u;$/;"	m	class:my_predictor
+update	my_predictor.h	/^	void update (branch_update *u, bool taken, unsigned int target) {$/;"	f	class:my_predictor
+update	predictor.h	/^	virtual void update (branch_update *, bool, unsigned int) {}$/;"	f	class:branch_predictor
+update_remember	compress/trace.cc	/^void update_remember (remember & me, remember *r, bool correct, int index) {$/;"	f
+update_remember	trace.cc	/^void update_remember (remember & me, remember *r, bool correct, int index) {$/;"	f
+~branch_predictor	predictor.h	/^	virtual ~branch_predictor (void) {}$/;"	f	class:branch_predictor
