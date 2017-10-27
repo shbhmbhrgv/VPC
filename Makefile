@@ -1,5 +1,5 @@
 CXX		=	g++
-CXXFLAGS	=	-g -O3 -Wall
+CXXFLAGS	=	-g -Wall
 
 all:		predict
 

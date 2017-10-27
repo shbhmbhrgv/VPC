@@ -5,28 +5,36 @@
 #include <iostream>
 using namespace std;
 
+#define DEBUG 1
+#define MAX_ITER 16
 class my_update : public branch_update {
 public:
 	unsigned int index;
+    int prediction_iter;
+    int btb_miss_iter;
+
+    my_update (void) : branch_update(), 
+                        index(0), prediction_iter(MAX_ITER), btb_miss_iter(MAX_ITER) {
+    }
 };
 
 class my_predictor : public branch_predictor {
 public:
 #define HISTORY_LENGTH	15
 #define TABLE_BITS	15
-#define MAX_ITER 16
+
 	my_update u;
 	branch_info bi;
-    int iter;
-    int btb_miss_iter;
 	unsigned int history;
 	unsigned char tab[1<<TABLE_BITS];
 	unsigned int targets[1<<TABLE_BITS];
     unsigned int hashmap[MAX_ITER];
+    unsigned int lfutable[1<<TABLE_BITS];
 
-	my_predictor (void) : iter(0), btb_miss_iter(0), history(0) { 
+	my_predictor (void) : history(0) { 
 		memset (tab, 0, sizeof (tab));
 		memset (targets, 0, sizeof (targets));
+        memset (lfutable, MAX_ITER, sizeof (lfutable));
         init_hashmap();
 	}
 
@@ -41,8 +49,9 @@ public:
 			u.direction_prediction (true);
 		}
 		if (b.br_flags & BR_INDIRECT) {
-			u.target_prediction (targets[b.address & ((1<<TABLE_BITS)-1)]);
-		}
+			//u.target_prediction (targets[b.address & ((1<<TABLE_BITS)-1)]);
+		    return vpc_predict();
+        }
 		return &u;
 	}
 
@@ -59,8 +68,9 @@ public:
 			history &= (1<<HISTORY_LENGTH)-1;
 		}
 		if (bi.br_flags & BR_INDIRECT) {
-			targets[bi.address & ((1<<TABLE_BITS)-1)] = target;
-		}
+			//targets[bi.address & ((1<<TABLE_BITS)-1)] = target;
+		    vpc_update(u, target);
+        }
 	}
 
     void init_hashmap() 
@@ -74,125 +84,195 @@ public:
         
     }
 
-    void vpc_predict(){
+    branch_update* vpc_predict(){
         unsigned int vpca = bi.address;
         unsigned int vghr = history;
+if(DEBUG){
+    cout<<  " predicted iteration initial value : " << u.prediction_iter << "\n";
+}
 
-        for(int i = 0; i < MAX_ITER; ++i) {
+        int i = 0;
+        for(; i < MAX_ITER; ++i) {
 
             //compute the predicted target address
             unsigned int pred_target = targets[vpca & ((1<<TABLE_BITS)-1)];
             
             //calculate index at which the predicted direction to look for
-            u.index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+            unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
 				                    ^ (vpca & ((1<<TABLE_BITS)-1));
 			
             //see the MSB of the 2-bit counter
-            bool pred_dir = tab[u.index] >> 1;
+            bool pred_dir = tab[index] >> 1;
 
-            if (pred_target && (pred_dir == TAKEN)) {
+            if (pred_target && (pred_dir)) {
                 //next_pc = pred_target;
-                iter = i;
+                //
+                //update the parameters, update this index to predicted_iteration
+                u.prediction_iter = i;
+
+                //update the target to predicted target
+                u.target_prediction(pred_target);
+
+                //update that one of the conditional branch is taken
+                u.direction_prediction(true);
                 break;
             }else if (!pred_target) {
-                btb_miss_iter = i;
+                u.btb_miss_iter = i;
+                u.direction_prediction(false);
                 break;                
             }
             
             vpca = bi.address ^ hashmap[i];
             vghr <<= 1;
+            vghr &= (1<<HISTORY_LENGTH)-1;
         }
-
+        if(i == MAX_ITER){
+            u.btb_miss_iter = i-1;
+            u.direction_prediction(false);
+        }
+if(DEBUG){
+    cout << " Indirect branch pc address: "<< bi.address << 
+            " predicted iteration : " << u.prediction_iter <<
+            " btb miss iteration: " << u.btb_miss_iter <<
+            " vghr : " << vghr << " vpca: "<< vpca <<
+            " history : "<< history << "\n";
+}
+        return &u;
     }
 
 
-    void vpc_update(branch_update* u, bool taken, unsigned int target)
+    void vpc_update(branch_update* bu, unsigned int target)
     {
-        if(taken){
+        bool taken = bu->direction_prediction();
+        if(taken){//Algorithm 2
             unsigned int vpca = bi.address;
             unsigned int vghr = history;
 
-            for(int i = 0; i <= iter; ++i){
-                if(i == iter){
-                    int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+            for(int i = 0; i <= u.prediction_iter; ++i){
+                
+                unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
 				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                    unsigned char *c = &tab[index];
+                unsigned char *c = &tab[index];
+                
+                if(i == u.prediction_iter){
+                    
                     if (*c < 3) (*c)++;
+
+                    //appending taken bit to history table
                     history <<= 1;
                     history |= 1;
                     history &= (1<<HISTORY_LENGTH)-1;
-                    targets[vpca & ((1<<TABLE_BITS)-1)] = vpca;
+                    //targets[vpca & ((1<<TABLE_BITS)-1)] = target;
                 }else{
-                    int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
-				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                    unsigned char *c = &tab[index];
                     if (*c > 0) (*c)--;
                     
+                    //appending history to be not taken
                     history <<= 1;
-                    history |= 1;
+                    history |= 0;
                     history &= (1<<HISTORY_LENGTH)-1;
     
                 }
                 
                 vpca = bi.address ^ hashmap[i];
                 vghr <<= 1;
-
+                vghr &= (1<<HISTORY_LENGTH)-1;
             }
         
+        }else {//Algorithm 3
+            unsigned int vpca = bi.address;
+            unsigned int vghr = history;
+
+            bool found = false;
+            int i = 0;
+            for(; i < MAX_ITER; ++i){
+                //compute the predicted target address
+                unsigned int pred_target = targets[vpca & ((1<<TABLE_BITS)-1)];
+            
+                if(pred_target == target){
+                    //update as taken
+                    unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+				                    ^ (vpca & ((1<<TABLE_BITS)-1));
+                    unsigned char *c = &tab[index];
+                    if (*c < 3) (*c)++;
+                    
+                    //history <<= 1;
+                    //history |= 1;
+                    //history &= (1<<HISTORY_LENGTH)-1;
+
+                    //update address
+                    //targets[vpca & ((1<<TABLE_BITS)-1)] = target;
+                    found = true;
+                    break;
+                }else if(pred_target){
+                    //update as not taken
+                    unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+				                    ^ (vpca & ((1<<TABLE_BITS)-1));
+                    unsigned char *c = &tab[index];
+                    if (*c > 0) (*c)--;
+                    //history <<= 1;
+                    //history |= 0;
+                    //history &= (1<<HISTORY_LENGTH)-1;
+                    
+                }
+                
+                vpca = bi.address ^ hashmap[i];
+                vghr <<= 1;
+                vghr &= (1<<HISTORY_LENGTH)-1;
+            }
+
+            //not found case
+            if(!found){
+                //using the vpca of BTB-miss
+                vpca = bi.address;
+                
+                //get vghr of the BTB-miss-iter
+                vghr = history;
+                for(int i = 1; i <= u.btb_miss_iter; ++i){
+                    vghr <<= 1;
+                    vghr &= (1<<HISTORY_LENGTH)-1;
+
+                    history <<= 1;
+                    history |= 0;
+                    history &= (1<<HISTORY_LENGTH)-1;
+                
+                    if(i == u.btb_miss_iter)
+                        vpca = bi.address ^ hashmap[u.btb_miss_iter];
+                }
+                
+                //update address
+                targets[vpca & ((1<<TABLE_BITS)-1)] = target;
+
+                unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+				                    ^ (vpca & ((1<<TABLE_BITS)-1));
+                unsigned char *c = &tab[index];
+                if (*c < 3) (*c)++;
+
+                history <<= 1;
+                history |= 1;
+                history &= (1<<HISTORY_LENGTH)-1;
+
+            } else{
+                for(int j = 0; j < i; ++j){
+                    history <<= 1;
+                    history &= (1<<HISTORY_LENGTH)-1;
+                }
+                
+            }
+
         }
 
+if(DEBUG) {
+    cout << "Updated History: "<< history << 
+            " Any branch taken: "<< taken << 
+            " target: " << target << "\n";
+
+
+}
+        u.prediction_iter = MAX_ITER;
+        u.btb_miss_iter = MAX_ITER;
+        //history <<= 1;
+        //history |= taken;
+        //history &= (1<<HISTORY_LENGTH)-1;
     }
 
-    /*
-     *Algorithm 2 VPC training algorithm when the branch target is correctly
-predicted. Inputs: predicted_iter, PC, GHR
-iter  1
-V PCA   PC
-V GHR   GHR
-while (iter < predicted_iter) do
-if (iter == predicted_iter) then
-update_conditional_BP(V PCA, V GHR, TAKEN)
-update_replacement_BTB(V PCA)
-else
-update_conditional_BP(V PCA, V GHR, NOT-TAKEN)
-end if
-V PCA  Hash(PC, iter)
-V GHR  Left-Shift(V GHR)
-iter++
-end while
-Algorithm 3 VPC training algorithm when the branch target is mispredicted.
-Inputs: PC, GHR, CORRECT_TARGET
-iter  1
-V PCA   PC
-V GHR   GHR
-found_correct_target   FALSE
-while ((iter  MAX_ITER) and (found_correct_target =
-FALSE)) do
-pred_target  access_BTB(V PCA)
-if (pred_target = CORRECT_TARGET) then
-update_conditional_BP(V PCA, V GHR, TAKEN)
-update_replacement_BTB(V PCA)
-found_correct_target   TRUE
-else if (pred_target) then
-update_conditional_BP(V PCA, V GHR, NOT-TAKEN)
-end if
-V PCA  Hash(PC, iter)
-V GHR  Left-Shift(V GHR)
-iter++
-end while
-/* no-target case */
-if (found_correct_target = FALSE) then
-V PCA   VPCA corresponding to the virtual branch with a BTB-Miss or
-Least-frequently-used target among all virtual branches
-V GHR   VGHR corresponding to the virtual branch with a BTB-Miss or
-Least-frequently-used target among all virtual branches
-insert_BTB(V PCA, CORRECT_TARGET)
-update_conditional_BP(V PCA, V GHR, TAKEN)
-end if
-     *
-     *
-     *
-     *
-     *
-     *
 };
