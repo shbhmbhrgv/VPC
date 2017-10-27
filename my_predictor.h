@@ -5,7 +5,8 @@
 #include <iostream>
 using namespace std;
 
-#define DEBUG 1
+#define DEBUG 0
+#define HISTORY 0
 #define MAX_ITER 16
 class my_update : public branch_update {
 public:
@@ -45,9 +46,9 @@ public:
 				  (history << (TABLE_BITS - HISTORY_LENGTH)) 
 				^ (b.address & ((1<<TABLE_BITS)-1));
 			u.direction_prediction (tab[u.index] >> 1);
-		} else {
-			u.direction_prediction (true);
-		}
+		} /*else {
+			//u.direction_prediction (true);
+		}*/
 		if (b.br_flags & BR_INDIRECT) {
 			//u.target_prediction (targets[b.address & ((1<<TABLE_BITS)-1)]);
 		    return vpc_predict();
@@ -82,6 +83,31 @@ public:
 
         }
         
+    }
+
+    void update_conditional_gshare(branch_update* u, bool taken, 
+                        unsigned int vpca, unsigned int vghr,
+                                    bool update_history=true) {
+        
+        unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
+				                    ^ (vpca & ((1<<TABLE_BITS)-1));
+    
+        unsigned char *c = &tab[index];
+        if (taken) {
+            if (*c < 3) (*c)++;
+        } else {
+            if (*c > 0) (*c)--;
+        }
+
+        if(update_history)
+            update_conditional_history_gshare(taken);
+    }
+
+    void update_conditional_history_gshare(bool taken) {
+
+        history <<= 1;
+        history |= taken;
+        history &= (1<<HISTORY_LENGTH)-1;
     }
 
     branch_update* vpc_predict(){
@@ -119,16 +145,16 @@ if(DEBUG){
             }else if (!pred_target) {
                 u.btb_miss_iter = i;
                 u.direction_prediction(false);
+                u.target_prediction(0);
                 break;                
             }
             
-            vpca = bi.address ^ hashmap[i];
-            vghr <<= 1;
-            vghr &= (1<<HISTORY_LENGTH)-1;
+            vpc_update_vpca_and_vghr(i, bi.address, vpca, vghr); 
         }
         if(i == MAX_ITER){
             u.btb_miss_iter = i-1;
             u.direction_prediction(false);
+            u.target_prediction(0);
         }
 if(DEBUG){
     cout << " Indirect branch pc address: "<< bi.address << 
@@ -140,42 +166,34 @@ if(DEBUG){
         return &u;
     }
 
+    void vpc_update_vpca_and_vghr(int iter, unsigned int pc_addr,
+                            unsigned int& vpca, unsigned int& vghr) {
+        vpca = pc_addr ^ hashmap[iter];
+        vghr <<= 1;
+        vghr &= (1 << HISTORY_LENGTH)-1;
+    }
 
     void vpc_update(branch_update* bu, unsigned int target)
     {
-        bool taken = bu->direction_prediction();
+        bool taken = u.direction_prediction();
+        //bool taken = u.target_prediction() & (u.target_prediction() == target);
         if(taken){//Algorithm 2
             unsigned int vpca = bi.address;
             unsigned int vghr = history;
 
             for(int i = 0; i <= u.prediction_iter; ++i){
                 
-                unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
-				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                unsigned char *c = &tab[index];
-                
-                if(i == u.prediction_iter){
-                    
-                    if (*c < 3) (*c)++;
 
-                    //appending taken bit to history table
-                    history <<= 1;
-                    history |= 1;
-                    history &= (1<<HISTORY_LENGTH)-1;
+                if(i == u.prediction_iter){
+  
+                    update_conditional_gshare(bu, true, vpca, vghr);
+                   
                     //targets[vpca & ((1<<TABLE_BITS)-1)] = target;
                 }else{
-                    if (*c > 0) (*c)--;
-                    
-                    //appending history to be not taken
-                    history <<= 1;
-                    history |= 0;
-                    history &= (1<<HISTORY_LENGTH)-1;
-    
+                    update_conditional_gshare(bu, false, vpca, vghr);    
                 }
                 
-                vpca = bi.address ^ hashmap[i];
-                vghr <<= 1;
-                vghr &= (1<<HISTORY_LENGTH)-1;
+                vpc_update_vpca_and_vghr(i, bi.address, vpca, vghr);
             }
         
         }else {//Algorithm 3
@@ -190,14 +208,7 @@ if(DEBUG){
             
                 if(pred_target == target){
                     //update as taken
-                    unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
-				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                    unsigned char *c = &tab[index];
-                    if (*c < 3) (*c)++;
-                    
-                    //history <<= 1;
-                    //history |= 1;
-                    //history &= (1<<HISTORY_LENGTH)-1;
+                    //update_conditional_gshare(bu, true, vpca, vghr, false); 
 
                     //update address
                     //targets[vpca & ((1<<TABLE_BITS)-1)] = target;
@@ -205,57 +216,41 @@ if(DEBUG){
                     break;
                 }else if(pred_target){
                     //update as not taken
-                    unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
-				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                    unsigned char *c = &tab[index];
-                    if (*c > 0) (*c)--;
-                    //history <<= 1;
-                    //history |= 0;
-                    //history &= (1<<HISTORY_LENGTH)-1;
+                    //update_conditional_gshare(bu, false, vpca, vghr, false);
                     
                 }
                 
-                vpca = bi.address ^ hashmap[i];
-                vghr <<= 1;
-                vghr &= (1<<HISTORY_LENGTH)-1;
+                vpc_update_vpca_and_vghr(i, bi.address, vpca, vghr);
             }
 
             //not found case
             if(!found){
-                //using the vpca of BTB-miss
+
                 vpca = bi.address;
-                
-                //get vghr of the BTB-miss-iter
                 vghr = history;
                 for(int i = 1; i <= u.btb_miss_iter; ++i){
-                    vghr <<= 1;
-                    vghr &= (1<<HISTORY_LENGTH)-1;
+                   
+                    //if(i != u.btb_miss_iter)
+                    update_conditional_gshare(bu, false, vpca, vghr);
 
-                    history <<= 1;
-                    history |= 0;
-                    history &= (1<<HISTORY_LENGTH)-1;
-                
-                    if(i == u.btb_miss_iter)
-                        vpca = bi.address ^ hashmap[u.btb_miss_iter];
+                    vpc_update_vpca_and_vghr(i-1, bi.address, vpca, vghr); 
+
                 }
-                
+                //vpc_update_vpca_and_vghr(u.btb_miss_iter, bi.address, vpca, vghr);
                 //update address
                 targets[vpca & ((1<<TABLE_BITS)-1)] = target;
 
-                unsigned int index = (vghr << (TABLE_BITS - HISTORY_LENGTH)) 
-				                    ^ (vpca & ((1<<TABLE_BITS)-1));
-                unsigned char *c = &tab[index];
-                if (*c < 3) (*c)++;
-
-                history <<= 1;
-                history |= 1;
-                history &= (1<<HISTORY_LENGTH)-1;
-
+                update_conditional_gshare(bu, true, vpca, vghr);    
             } else{
+                
+                unsigned int vpca = bi.address;
+                unsigned int vghr = history;
                 for(int j = 0; j < i; ++j){
-                    history <<= 1;
-                    history &= (1<<HISTORY_LENGTH)-1;
+                    update_conditional_gshare(bu, false, vpca, vghr);
+                    vpc_update_vpca_and_vghr(j, bi.address, vpca, vghr);
                 }
+
+                update_conditional_gshare(bu, true, vpca, vghr);
                 
             }
 
@@ -270,6 +265,7 @@ if(DEBUG) {
 }
         u.prediction_iter = MAX_ITER;
         u.btb_miss_iter = MAX_ITER;
+        u.target_prediction(0);
         //history <<= 1;
         //history |= taken;
         //history &= (1<<HISTORY_LENGTH)-1;
