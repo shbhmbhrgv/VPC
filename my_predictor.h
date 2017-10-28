@@ -175,8 +175,8 @@ if(DEBUG){
 
     void vpc_update(branch_update* bu, unsigned int target)
     {
-        bool taken = u.direction_prediction();
-        //bool taken = u.target_prediction() & (u.target_prediction() == target);
+        //bool taken = u.direction_prediction();
+        bool taken = u.target_prediction() & (u.target_prediction() == target);
         if(taken){//Algorithm 2
             unsigned int vpca = bi.address;
             unsigned int vghr = history;
